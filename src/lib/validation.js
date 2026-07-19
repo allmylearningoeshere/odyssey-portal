@@ -7,9 +7,11 @@
 
 // Letters (incl. accented), spaces, hyphens and apostrophes — no digits.
 const NAME_RE = /^[\p{L}\s'-]+$/u
-// Pragmatic email shape: something@something.tld
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-// German mobile national part: digits, spaces, hyphens; 6–13 digits total.
+// Pragmatic email shape: local@domain.tld, where the domain label
+// (the part before the final dot) must be at least 2 characters —
+// so "d.de" fails but "gm.de" passes.
+const EMAIL_RE = /^[^\s@]+@[^\s@.]{2,}(?:\.[^\s@.]+)+$/
+// Mobile: digits, spaces, hyphens allowed as input; must total 10 digits.
 const PHONE_DIGITS_RE = /^\d[\d\s-]*$/
 // German postcode: exactly 5 digits.
 const POSTCODE_RE = /^\d{5}$/
@@ -34,7 +36,7 @@ export function validateField(name, value) {
       if (!v) return 'Required'
       if (!PHONE_DIGITS_RE.test(v)) return 'Digits only'
       const digits = v.replace(/\D/g, '')
-      if (digits.length < 6 || digits.length > 13) return 'Enter a valid mobile number'
+      if (digits.length !== 10) return 'Enter a 10-digit mobile number'
       return ''
     }
     case 'address': {
