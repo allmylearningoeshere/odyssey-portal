@@ -263,3 +263,26 @@ body {
   .spin { animation: none; }
   * { transition: none !important; }
 }
+
+/* Field validation ------------------------------------------------------- */
+.field-error {
+  font-size: 11px; color: #c0392b; margin-top: 4px; display: block;
+}
+.form-group input.invalid,
+.phone-wrap.invalid { border-color: #c0392b !important; }
+.phone-wrap.invalid input { border-color: #c0392b !important; }
+.lookup-wrap input.invalid { border-color: #c0392b !important; }
+
+/* Address lookup --------------------------------------------------------- */
+.lookup-wrap { display: flex; align-items: stretch; gap: 8px; }
+.lookup-wrap input { flex: 1; }
+.lookup-btn {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  padding: 0 14px; height: 40px;
+  background: var(--surface-1); color: var(--ink-2);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  font-size: 13px; font-weight: 500; font-family: var(--sans); cursor: pointer;
+  transition: all .15s;
+}
+.lookup-btn:hover { border-color: var(--red); color: var(--red); }
+.lookup-btn svg { flex-shrink: 0; }

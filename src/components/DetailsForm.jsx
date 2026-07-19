@@ -1,11 +1,27 @@
+import { useState } from 'react'
+import { validateField } from '../lib/validation.js'
+
 export default function DetailsForm({
   plan, form, setForm, shipping, setShipping, shippingOptions, onBack, onContinue,
 }) {
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  // Track live validation errors per field.
+  const [errors, setErrors] = useState({})
 
-  const valid =
-    form.firstName && form.lastName && form.email &&
-    form.phone && form.address && form.city && form.postcode
+  const set = (k) => (e) => {
+    const value = e.target.value
+    setForm({ ...form, [k]: value })
+    // Live validation — recompute this field's error on every keystroke.
+    setErrors((prev) => ({ ...prev, [k]: validateField(k, value) }))
+  }
+
+  const fields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'postcode']
+  const allFilled = fields.every((f) => (form[f] ?? '').trim() !== '')
+  const noErrors = fields.every((f) => !validateField(f, form[f]))
+  const valid = allFilled && noErrors
+
+  function handleLookup() {
+    // Placeholder — address lookup wiring comes later.
+  }
 
   return (
     <>
@@ -17,21 +33,17 @@ export default function DetailsForm({
       <section className="section">
         <div className="section-label">Your details</div>
         <div className="form-row">
-          <Field label="First name" value={form.firstName} onChange={set('firstName')} placeholder="Jana" />
-          <Field label="Last name" value={form.lastName} onChange={set('lastName')} placeholder="Schmidt" />
+          <Field label="First name" value={form.firstName} onChange={set('firstName')} error={errors.firstName} placeholder="Jana" />
+          <Field label="Last name" value={form.lastName} onChange={set('lastName')} error={errors.lastName} placeholder="Schmidt" />
         </div>
-        <Field full label="Email address" type="email" value={form.email} onChange={set('email')} placeholder="jana@email.de" />
-        <div className="form-group">
+        <Field full label="Email address" type="email" value={form.email} onChange={set('email')} error={errors.email} placeholder="jana@email.de" />
+        <div className="form-group full">
           <label>Mobile number</label>
-          <div className="phone-wrap">
+          <div className={`phone-wrap${errors.phone ? ' invalid' : ''}`}>
             <span className="phone-prefix">+49</span>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={set('phone')}
-              placeholder="151 23456789"
-            />
+            <input type="tel" value={form.phone} onChange={set('phone')} placeholder="151 23456789" aria-invalid={!!errors.phone} />
           </div>
+          {errors.phone && <span className="field-error">{errors.phone}</span>}
         </div>
       </section>
 
@@ -39,14 +51,30 @@ export default function DetailsForm({
 
       <section className="section">
         <div className="section-label">Delivery address</div>
-        <Field full label="Street address" value={form.address} onChange={set('address')} placeholder="Musterstraße 12" />
-        <div className="form-row">
-          <Field label="City" value={form.city} onChange={set('city')} placeholder="Berlin" />
-          <Field label="Postcode" value={form.postcode} onChange={set('postcode')} placeholder="10115" />
+        <div className="form-group full">
+          <label>Street address</label>
+          <div className="lookup-wrap">
+            <input
+              type="text"
+              value={form.address}
+              onChange={set('address')}
+              placeholder="Musterstraße 12"
+              aria-invalid={!!errors.address}
+              className={errors.address ? 'invalid' : ''}
+            />
+            <button type="button" className="lookup-btn" onClick={handleLookup}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              Lookup
+            </button>
+          </div>
+          {errors.address && <span className="field-error">{errors.address}</span>}
         </div>
-        <div className="form-group">
-          <label>Country</label>
-          <input type="text" value="Germany" disabled readOnly aria-readonly="true" />
+        <div className="form-row">
+          <Field label="City" value={form.city} onChange={set('city')} error={errors.city} placeholder="Berlin" />
+          <Field label="Postcode" value={form.postcode} onChange={set('postcode')} error={errors.postcode} placeholder="10115" />
         </div>
       </section>
 
@@ -84,11 +112,19 @@ export default function DetailsForm({
   )
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text', full }) {
+function Field({ label, value, onChange, placeholder, type = 'text', full, error }) {
   return (
     <div className={`form-group${full ? ' full' : ''}`}>
       <label>{label}</label>
-      <input type={type} value={value} onChange={onChange} placeholder={placeholder} />
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        aria-invalid={!!error}
+        className={error ? 'invalid' : ''}
+      />
+      {error && <span className="field-error">{error}</span>}
     </div>
   )
 }
