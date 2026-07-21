@@ -340,3 +340,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .modal { box-shadow: 0 10px 30px rgba(0,0,0,.25); }
 }
+
+/* House number sits in a narrow column of its own row -------------------- */
+.street-number-row { grid-template-columns: 140px 1fr; }
+@media (max-width: 520px) {
+  .street-number-row { grid-template-columns: 1fr; }
+  .street-number-row .form-group[aria-hidden="true"] { display: none; }
+}

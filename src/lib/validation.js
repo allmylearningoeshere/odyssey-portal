@@ -15,11 +15,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]{2,}(?:\.[^\s@.]+)+$/
 const PHONE_DIGITS_RE = /^\d[\d\s-]*$/
 // German postcode: exactly 5 digits.
 const POSTCODE_RE = /^\d{5}$/
-// Street address must contain a house number — i.e. at least one digit
-// appearing after some street-name text. Requires a letter somewhere before
-// a number, so "Musterstraße 12" passes but "Musterstraße" (no number) and
-// "12" (no street) both fail.
-const HOUSE_NUMBER_RE = /^.*\p{L}.*\s+\d+\s*[a-zA-Z]?\s*$/u
+// Street name: letters (incl. accented), spaces, hyphens, periods and
+// apostrophes — no digits, since the house number is now a separate field.
+// Allows "Unter den Linden", "Karl-Marx-Allee", "Bäckerstr.".
+const STREET_RE = /^[\p{L}\s.'-]+$/u
+// House number: digits with an optional single trailing letter, e.g. "12" or
+// "12a". Case-insensitive on the letter.
+const HOUSE_NUMBER_RE = /^\d+[a-zA-Z]?$/
 
 export function validateField(name, value) {
   const v = (value ?? '').trim()
@@ -46,8 +48,13 @@ export function validateField(name, value) {
     }
     case 'address': {
       if (!v) return 'Required'
-      if (v.length < 4) return 'Enter a full street address'
-      if (!HOUSE_NUMBER_RE.test(v)) return 'Add a house number, e.g. Musterstraße 12'
+      if (!STREET_RE.test(v)) return 'Street name only — no numbers'
+      if (v.length < 3) return 'Enter a street name'
+      return ''
+    }
+    case 'houseNumber': {
+      if (!v) return 'Required'
+      if (!HOUSE_NUMBER_RE.test(v)) return 'e.g. 12 or 12a'
       return ''
     }
     case 'city': {
@@ -68,7 +75,7 @@ export function validateField(name, value) {
 // Validates the whole form; returns an { field: error } map (only non-empty).
 export function validateAll(form) {
   const errors = {}
-  for (const key of ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'postcode']) {
+  for (const key of ['firstName', 'lastName', 'email', 'phone', 'address', 'houseNumber', 'city', 'postcode']) {
     const err = validateField(key, form[key])
     if (err) errors[key] = err
   }
