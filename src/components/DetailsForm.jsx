@@ -66,6 +66,7 @@ export default function DetailsForm({
 
       <section className="section">
         <div className="section-label">Delivery address</div>
+        <p className="section-caption">Please enter the postcode to look up.</p>
         <div className="form-group full">
           <label>Street address</label>
           <div className="lookup-wrap">

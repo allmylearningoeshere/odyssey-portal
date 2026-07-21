@@ -15,6 +15,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@.]{2,}(?:\.[^\s@.]+)+$/
 const PHONE_DIGITS_RE = /^\d[\d\s-]*$/
 // German postcode: exactly 5 digits.
 const POSTCODE_RE = /^\d{5}$/
+// Street address must contain a house number — i.e. at least one digit
+// appearing after some street-name text. Requires a letter somewhere before
+// a number, so "Musterstraße 12" passes but "Musterstraße" (no number) and
+// "12" (no street) both fail.
+const HOUSE_NUMBER_RE = /^.*\p{L}.*\s+\d+\s*[a-zA-Z]?\s*$/u
 
 export function validateField(name, value) {
   const v = (value ?? '').trim()
@@ -42,6 +47,7 @@ export function validateField(name, value) {
     case 'address': {
       if (!v) return 'Required'
       if (v.length < 4) return 'Enter a full street address'
+      if (!HOUSE_NUMBER_RE.test(v)) return 'Add a house number, e.g. Musterstraße 12'
       return ''
     }
     case 'city': {
