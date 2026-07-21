@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { validateField } from '../lib/validation.js'
+import AddressLookupModal from './AddressLookupModal.jsx'
 
 export default function DetailsForm({
   plan, form, setForm, shipping, setShipping, shippingOptions, onBack, onContinue,
 }) {
   // Track live validation errors per field.
   const [errors, setErrors] = useState({})
+  const [lookupOpen, setLookupOpen] = useState(false)
 
   const set = (k) => (e) => {
     const value = e.target.value
@@ -20,7 +22,20 @@ export default function DetailsForm({
   const valid = allFilled && noErrors
 
   function handleLookup() {
-    // Placeholder — address lookup wiring comes later.
+    setLookupOpen(true)
+  }
+
+  // Fill street, city and postcode from a chosen lookup result, clearing
+  // any stale validation errors on those fields.
+  function applyLookup({ street, city, postcode }) {
+    const next = { ...form, address: street, city, postcode }
+    setForm(next)
+    setErrors((prev) => ({
+      ...prev,
+      address: validateField('address', street),
+      city: validateField('city', city),
+      postcode: validateField('postcode', postcode),
+    }))
   }
 
   return (
@@ -108,6 +123,14 @@ export default function DetailsForm({
 
       <button className="btn" disabled={!valid} onClick={onContinue}>Review order</button>
       <button className="btn-ghost" onClick={onBack}>Back</button>
+
+      {lookupOpen && (
+        <AddressLookupModal
+          initialPostcode={form.postcode}
+          onSelect={applyLookup}
+          onClose={() => setLookupOpen(false)}
+        />
+      )}
     </>
   )
 }
